@@ -4,7 +4,8 @@ import json
 
 app = Flask(__name__)
 
-MAPS_PATH:str = os.path.join(os.getcwd(), "./maps.json")
+DIR:str = os.path.join(os.getcwd(), "")
+MAPS_PATH:str = os.path.join(DIR, "maps.json")
 POST_SUCCESS = {"success" : True}
 
 def get_data(path:str) -> list:
@@ -17,11 +18,15 @@ def write_data(path:str, data:list):
 
 def post_error(message:str) -> dict:
     return {"success" : False, "message": message}
+    
+def get_file(path:str):
+    with open(os.path.join(DIR, path), "rb") as f:
+        return f.read()
 
 @app.route('/', methods = ['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        return render_template("maps.html", maps=get_data(MAPS_PATH))
+        return get_file("maps.html")
     else:
         data = request.json
         if "map" not in data:
