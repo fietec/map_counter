@@ -1,300 +1,449 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Map Counters</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Mobile support -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-        margin: 0;
-        padding: 20px;
-        background-color: #f2f4f8;
-        font-family: 'Inter', sans-serif;
-        color: #333;
-    }
-
-    h1 {
-        text-align: center;
-        margin-bottom: 30px;
-        font-weight: 600;
-        color: #222;
-        font-size: 1.8rem;
-    }
-
-    .container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    @keyframes bang {
-      from {
-        transform: translate3d(0,0,0);
-        opacity: 1;
-      }
-    }
-    .item {
-        background-color: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        padding: 16px;
-        text-align: center;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .item h3 {
-        margin: 10px 0;
-        font-size: 1rem;
-        font-weight: 600;
-    }
-
-    .item img {
-        width: 100%;
-        height: 140px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-bottom: 12px;
-    }
-
-    .count {
-        font-size: 0.95rem;
-        margin: 12px 0;
-        color: #555;
-    }
-
-    .buttons {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 10px;
-    }
-
-    .buttons button {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-        color: #fff;
-        background: linear-gradient(145deg, #6c63ff, #5145cd);
-        box-shadow: 0 4px 10px rgba(100, 100, 255, 0.3);
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-    }
-
-    .buttons button:hover {
-        background: linear-gradient(145deg, #7872ff, #6153e3);
-        box-shadow: 0 6px 14px rgba(100, 100, 255, 0.4);
-    }
-
-    .buttons button:active {
-        transform: scale(0.95);
-        box-shadow: 0 2px 5px rgba(100, 100, 255, 0.2);
-    }
-
-    .reset-wrapper {
-        display: flex;
-        justify-content: center;
-        margin-top: 40px;
-    }
-
-    .reset-button {
-        background: linear-gradient(145deg, #ff6b6b, #e63946);
-        color: white;
-        font-size: 1rem;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        box-shadow: 0 6px 14px rgba(255, 107, 107, 0.3);
-        transition: all 0.2s ease;
-    }
-
-    .reset-button:hover {
-        background: linear-gradient(145deg, #ff7e7e, #ef5350);
-        box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-    }
-
-    .reset-button:active {
-        transform: scale(0.97);
-        box-shadow: 0 3px 6px rgba(255, 107, 107, 0.2);
-    }
-
-    @media (max-width: 480px) {
-        body {
-            padding: 10px;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-        }
-
-        .item {
-            padding: 12px;
-        }
-
-        .buttons button {
-            width: 36px;
-            height: 36px;
-            font-size: 18px;
-        }
-
-        .reset-button {
-            width: 100%;
-            font-size: 0.95rem;
-            padding: 10px;
-        }
-    }
-    
-    .inactive {
-        opacity: 0.6;
-    }
-
-    .inactive img {
-        filter: grayscale(100%);
-    }
-
-    .inactive .buttons button {
-        pointer-events: none;
-    }
-
-    .inactive-symbol {
-        position: relative;
-        cursor: help;
-        font-size: 0.9em;
-        margin-left: 5px;
-    }
-
-    .inactive-symbol::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: #fff;
-        padding: 5px 8px;
-        border-radius: 4px;
-        white-space: nowrap;
-        font-size: 0.75rem;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease-in-out;
-        z-index: 10;
-    }
-
-    .inactive-symbol:hover::after {
-        opacity: 1;
-    }
-
-  </style>
-</head>
-<body>
-
-<h1>Map Counter</h1>
-
-<div class="container" id="container"></div>
-<div class="reset-wrapper">
-    <button class="reset-button" onclick="resetAll()">Reset All</button>
-</div>
-
-<script>
-  function update(mapId, change) {
-    fetch('', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ map: mapId, change: change })
-    })
-    .then(res => res.json())
-    .then(res => {
-        if (res.success) {
-            get_maps();
-        } else {
-            alert(res.message || "Failed to update.");
-        }
-    });
-  }
-
-  function resetAll() {
-    if (!confirm("Do you really want to reset all counters?")) return;
-    fetch('/reset', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(res => {
-        if (res.success) {
-            get_maps();
-        } else {
-            alert(res.message || "Failed to reset.");
-        }
-    });
-  }
-  
-    function get_maps(){
-        fetch('/maps', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+    <head>
+        <meta charset="UTF-8" />
+        <title>Map Counters</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                margin: 0;
+                padding: 20px;
+                background-color: #f2f4f8;
+                font-family: 'Inter', sans-serif;
+                color: #333;
             }
-        }).then(res => res.json()).then(res => {
-            if (res.success && res.maps){
-                const container = document.querySelector('#container');
-                container.innerHTML = '';
-                const maps = res.maps;
-                const total = res.total;
-                const sortedEntries = Object.entries(maps).sort(([, a], [, b]) => {
-                    if (a.active !== b.active){
-                        return b.active - a.active;
-                    }
-                    return b.played - a.played;
-                });
-                for (const mapData of sortedEntries) {
-                    const id = mapData[0];
-                    const map = mapData[1];
 
-                    const inactiveClass = map.active ? '' : ' inactive';
-                    const inactiveSymbol = map.active ? '' : '<span class="inactive-symbol" data-tooltip="Out of Rotation">🚫️</span>';
+            body.dark-mode {
+                background-color: #1e1e1e;
+                color: #eee;
+            }
 
-                    container.insertAdjacentHTML(
-                        'beforeend',
-                        `<div class="item${inactiveClass}">
-                            <h3>${map.name} ${inactiveSymbol}</h3>
-                            <img src="${map.img}" alt="Image not found">
-                            <p id="${id}-counter" class="count">
-                                Played ${map.played} of ${total} times
-                                <br>
-                                ${total > 0 ? Math.round((map.played / total) * 100) : 0}%
-                            </p>
-                            <div class="buttons">
-                                <button onclick="update('${id}', -1)">−</button>
-                                <button onclick="update('${id}', 1)">+</button>
-                            </div>
-                        </div>`
-                    );
+            .theme-toggle {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: none;
+                border: none;
+                font-size: 1rem;
+                cursor: pointer;
+                color: inherit;
+                padding: 8px 12px;
+                border-radius: 6px;
+                transition: background-color 0.3s;
+                z-index: 100;
+            }
+
+            .theme-toggle:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+            }
+
+            body.dark-mode .theme-toggle:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+
+            h1 {
+                text-align: center;
+                font-weight: 600;
+                color: #222;
+                font-size: 2rem;
+                margin-top: 60px;
+            }
+
+            h3 {
+                text-align: center;
+                font-weight: 600;
+                color: #222;
+            }
+
+            body.dark-mode h1 {
+                color: #fff;
+            }
+
+            body.dark-mode h3 {
+                color: #fff;
+            }
+
+            .container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 20px;
+                max-width: 1200px;
+                margin: 30px auto 0 auto;
+            }
+
+            .item {
+                background-color: #fff;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+                padding: 16px;
+                text-align: center;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            body.dark-mode .item {
+                background-color: #2a2a2a;
+                color: #eee;
+            }
+
+            .item:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            }
+
+            .item h3 {
+                margin: 10px 0;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+
+            .item img {
+                width: 100%;
+                height: 140px;
+                object-fit: cover;
+                border-radius: 8px;
+                margin-bottom: 12px;
+            }
+
+            .count {
+                font-size: 0.95rem;
+                margin: 12px 0;
+                color: #555;
+            }
+
+            body.dark-mode .count {
+                color: #ccc;
+            }
+
+            .buttons {
+                display: flex;
+                justify-content: center;
+                gap: 12px;
+                margin-top: 10px;
+            }
+
+            .buttons button {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                color: #fff;
+                background: linear-gradient(145deg, #6c63ff, #5145cd);
+                box-shadow: 0 4px 10px rgba(100, 100, 255, 0.3);
+                transition: all 0.2s ease;
+                flex-shrink: 0;
+            }
+
+            .buttons button:hover {
+                background: linear-gradient(145deg, #7872ff, #6153e3);
+                box-shadow: 0 6px 14px rgba(100, 100, 255, 0.4);
+            }
+
+            .buttons button:active {
+                transform: scale(0.95);
+                box-shadow: 0 2px 5px rgba(100, 100, 255, 0.2);
+            }
+
+            .reset-wrapper {
+                display: flex;
+                justify-content: center;
+                margin-top: 40px;
+            }
+
+            .reset-button {
+                background: linear-gradient(145deg, #ff6b6b, #e63946);
+                color: white;
+                font-size: 1rem;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                box-shadow: 0 6px 14px rgba(255, 107, 107, 0.3);
+                transition: all 0.2s ease;
+            }
+
+            .reset-button:hover {
+                background: linear-gradient(145deg, #ff7e7e, #ef5350);
+                box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            }
+
+            .reset-button:active {
+                transform: scale(0.97);
+                box-shadow: 0 3px 6px rgba(255, 107, 107, 0.2);
+            }
+
+            .inactive {
+                opacity: 0.6;
+            }
+
+            .inactive img {
+                filter: grayscale(100%);
+            }
+
+            .inactive .buttons button {
+                pointer-events: none;
+            }
+
+            .inactive-symbol {
+                position: relative;
+                cursor: help;
+                font-size: 0.9em;
+                margin-left: 5px;
+            }
+
+            .inactive-symbol::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 125%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #333;
+                color: #fff;
+                padding: 5px 8px;
+                border-radius: 4px;
+                white-space: nowrap;
+                font-size: 0.75rem;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+                z-index: 10;
+            }
+
+            .inactive-symbol:hover::after {
+                opacity: 1;
+            }
+
+            .confetti {
+                position: absolute;
+                pointer-events: none;
+                will-change: transform, opacity;
+            }
+
+            body.dark-mode .buttons button {
+                box-shadow: none;
+            }
+
+            body.dark-mode .buttons button:hover {
+                background: #555;
+                box-shadow: none;
+            }
+
+            @media (max-width: 480px) {
+                body {
+                    padding: 10px;
                 }
-            }else{
-                alert(res.message || "Failed to load maps.");
+
+                h1 {
+                    font-size: 1.5rem;
+                    margin-top: 70px;
+                }
+
+                .theme-toggle {
+                    top: 10px;
+                    right: 10px;
+                    font-size: 0.9rem;
+                    padding: 6px 10px;
+                }
+
+                .reset-button {
+                    width: 100%;
+                    font-size: 0.95rem;
+                    padding: 10px;
+                }
+
+                .buttons button {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 18px;
+                }
+
+                .item {
+                    padding: 12px;
+                }
             }
-        });
-    }
-    
-    // run this on first load
-    get_maps();
+        </style>
+    </head>
+    <body>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+        <h1>Map Counter</h1>
+        <h3>Starting from 21/05/2025</h3>
 
-</script>
+        <div class="container" id="container"></div>
+        <div class="reset-wrapper">
+            <button class="reset-button" onclick="resetAll()">Reset All</button>
+        </div>
 
-</body>
+        <script>
+            function toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                document.querySelector('.theme-toggle').textContent = isDark
+                    ? '☀️ Light Mode'
+                    : '🌙 Dark Mode';
+            }
+
+            (function applySavedTheme() {
+                const saved = localStorage.getItem('theme');
+                if (saved === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    window.addEventListener('DOMContentLoaded', () => {
+                        document.querySelector('.theme-toggle').textContent =
+                            '☀️ Light Mode';
+                    });
+                }
+            })();
+
+            function update(mapId, change) {
+                fetch('', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ map: mapId, change }),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        if (res.success) get_maps();
+                        else alert(res.message || 'Failed to update.');
+                    });
+            }
+
+            function resetAll() {
+                if (!confirm('Do you really want to reset all counters?')) return;
+                fetch('/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        if (res.success) get_maps();
+                        else alert(res.message || 'Failed to reset.');
+                    });
+            }
+
+            function get_maps() {
+                fetch('/maps', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        if (res.success && res.maps) {
+                            const container = document.querySelector('#container');
+                            container.innerHTML = '';
+                            const { maps, total } = res;
+
+                            const sorted = Object.entries(maps).sort(
+                                ([, a], [, b]) => b.active - a.active || b.played - a.played
+                            );
+
+                            for (const [id, map] of sorted) {
+                                const inactiveClass = map.active ? '' : ' inactive';
+                                const inactiveSymbol = map.active
+                                    ? ''
+                                    : '<span class="inactive-symbol" data-tooltip="Out of Rotation">🚫️</span>';
+                                const effect = map.based
+                                    ? "launchConfetti(this, 'good');"
+                                    : "launchConfetti(this, 'bad');";
+
+                                container.insertAdjacentHTML(
+                                    'beforeend',
+                                    `
+                                    <div class="item${inactiveClass}">
+                                        <h3>${map.name} ${inactiveSymbol}</h3>
+                                        <img src="${map.img}" alt="Image not found" />
+                                        <p id="${id}-counter" class="count">
+                                            Played ${map.played} of ${total} times<br />
+                                            ${
+                                                total > 0
+                                                    ? Math.round((map.played / total) * 100)
+                                                    : 0
+                                            }%
+                                        </p>
+                                        <div class="buttons">
+                                            <button onclick="update('${id}', -1)">−</button>
+                                            <button onclick="${effect}update('${id}', 1)">+</button>
+                                        </div>
+                                    </div>
+                                `
+                                );
+                            }
+                        } else {
+                            alert(res.message || 'Failed to load maps.');
+                        }
+                    });
+            }
+
+            get_maps();
+
+            function launchConfetti(button, type) {
+                const rect = button.getBoundingClientRect();
+                const originX = rect.left + rect.width / 2 + window.scrollX;
+                const originY = rect.top + rect.height / 2 + window.scrollY;
+
+                const colors = {
+                    good: ['#2ecc71', '#f1c40f', '#3498db', '#e67e22'],
+                    bad: ['#3a3a3a', '#4a4a4a', '#2c2c2c', '#555555', '#1e1e1e'],
+                };
+
+                const count = type === 'bad' ? 20 : 40;
+
+                for (let i = 0; i < count; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    document.body.appendChild(confetti);
+
+                    const size = Math.random() * 5 + 3;
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${
+                        size * (type === 'bad' ? Math.random() * 1.8 + 1.2 : 1)
+                    }px`;
+                    confetti.style.left = `${originX}px`;
+                    confetti.style.top = `${originY}px`;
+                    confetti.style.position = 'absolute';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.willChange = 'transform, opacity';
+                    confetti.style.opacity = type === 'bad' ? '0.4' : '1';
+                    confetti.style.backgroundColor =
+                        colors[type][Math.floor(Math.random() * colors[type].length)];
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+                    if (type === 'bad') {
+                        confetti.style.clipPath =
+                            'polygon(10% 0%, 90% 15%, 80% 50%, 100% 70%, 70% 85%, 30% 100%, 20% 70%, 0% 40%)';
+                        confetti.style.filter = 'blur(0.5px)';
+                    } else {
+                        confetti.style.borderRadius = '10%';
+                    }
+
+                    const angle = Math.random() * 2 * Math.PI;
+                    const velocity = Math.random() * 6 + 3;
+                    const dx = Math.cos(angle) * velocity;
+                    const dy = Math.sin(angle) * velocity;
+
+                    const duration = type === 'bad' ? 2000 + Math.random() * 1000 : 1000 + Math.random() * 500;
+
+                    const animation = confetti.animate(
+                        [
+                            { transform: confetti.style.transform || 'translate(0, 0)', opacity: confetti.style.opacity },
+                            {
+                                transform: `translate(${dx * 10}px, ${dy * 10}px) rotate(${Math.random() * 360}deg)`,
+                                opacity: 0,
+                            },
+                        ],
+                        {
+                            duration,
+                            easing: 'ease-out',
+                        }
+                    );
+
+                    animation.onfinish = () => confetti.remove();
+                }
+            }
+        </script>
+    </body>
 </html>
