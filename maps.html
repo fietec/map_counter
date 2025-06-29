@@ -93,7 +93,7 @@
                 transform: translateY(-4px);
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
             }
-            
+
             body.dark-mode .item:hover{
                 background-color: #2f2f2f;
             }
@@ -300,27 +300,87 @@
             body.dark-mode footer a {
                 color: #8a82ff;
             }
+            .season-selector-wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                margin-top: 20px;
+                font-size: 1rem;
+                color: #333;
+            }
+
+            .season-selector-wrapper select {
+                padding: 8px 12px;
+                font-size: 1rem;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                background-color: #fff;
+                color: #333;
+                font-family: 'Inter', sans-serif;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .season-selector-wrapper select:hover {
+                border-color: #888;
+                background-color: #f0f0f0;
+            }
+
+            body.dark-mode .season-selector-wrapper {
+                color: #eee;
+            }
+
+            body.dark-mode .season-selector-wrapper select {
+                background-color: #2a2a2a;
+                color: #eee;
+                border: 1px solid #555;
+            }
+
+            body.dark-mode .season-selector-wrapper select:hover {
+                background-color: #333;
+                border-color: #777;
+            }
+            
+            .period_label {
+                margin-top: 8px;
+                margin-bottom: 12px;
+                padding: 0 12px;
+                font-size: 0.95rem;
+                text-align: center;
+                color: #333;
+                font-family: 'Inter', sans-serif;
+            }
+
+            body.dark-mode .period_label {
+                color: #eee;
+            }
+            
         </style>
     </head>
     <body>
         <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
         <h1>Map Counter</h1>
-        <h3>Starting from 21/05/2025</h3>
-
+        <div class="season-selector-wrapper">
+            <label for="season-selector">Select act:</label>
+            <select id="season-selector" onchange="handle_season_change(this.value)">
+            </select>
+        </div>
+        <div class="period_label" id="period_label"></div>
         <div class="container" id="container"></div>
         <div class="reset-wrapper">
             <button class="reset-button" onclick="resetAll()">Reset All</button>
         </div>
         <footer>
             <div class="footer-content">
-                &copy; 2025 Map Counter. 
+                &copy; 2025 Map Counter.
                 <a href="https://github.com/fietec/map_counter" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="GitHub Repository">
                     <!-- GitHub SVG icon -->
                     <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align: text-bottom; margin-right: 4px;">
-                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 
-                        0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 
-                        1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.14-.08-.2-.36-1.02.08-2.12 
-                        0 0 .67-.22 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.14 
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                        0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
+                        1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.14-.08-.2-.36-1.02.08-2.12
+                        0 0 .67-.22 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.14
                         0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
                     </svg>
                     GitHub
@@ -329,6 +389,8 @@
         </footer>
 
         <script>
+            let selected_season = null;
+            
             function toggleTheme() {
                 document.body.classList.toggle('dark-mode');
                 const isDark = document.body.classList.contains('dark-mode');
@@ -350,7 +412,7 @@
                 fetch('', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ map: mapId, change }),
+                    body: JSON.stringify({ map: mapId, season: selected_season, change }),
                 })
                     .then((res) => res.json())
                     .then((res) => {
@@ -364,6 +426,7 @@
                 fetch('/reset', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({season: selected_season})
                 })
                     .then((res) => res.json())
                     .then((res) => {
@@ -374,55 +437,81 @@
 
             function get_maps() {
                 fetch('/maps', {
-                    method: 'GET',
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({season: selected_season}),
                 })
-                    .then((res) => res.json())
-                    .then((res) => {
-                        if (res.success && res.maps) {
-                            const container = document.querySelector('#container');
-                            container.innerHTML = '';
-                            const { maps, total } = res;
+                .then((res) => res.json())
+                .then((res) => {
+                    if (res.success && res.maps) {
+                        const container = document.querySelector('#container');
+                        container.innerHTML = '';
+                        if (res.seasons) {
+                            const dropdown = document.querySelector('#season-selector');
+                            dropdown.innerHTML = '';
 
-                            const sorted = Object.entries(maps).sort(
-                                ([, a], [, b]) => b.active - a.active || b.played - a.played
-                            );
+                            res.seasons.forEach(({ value, name }) => {
+                                const option = document.createElement('option');
+                                option.value = value;
+                                option.textContent = name;
+                                dropdown.appendChild(option);
+                            });
 
-                            for (const [id, map] of sorted) {
-                                const inactiveClass = map.active ? '' : ' inactive';
-                                const inactiveSymbol = map.active
-                                    ? ''
-                                    : '<span class="inactive-symbol" data-tooltip="Out of Rotation">🚫️</span>';
-                                const effect = map.based
-                                    ? "launchConfetti(this, 'good');"
-                                    : "launchConfetti(this, 'bad');";
-
-                                container.insertAdjacentHTML(
-                                    'beforeend',
-                                    `
-                                    <div class="item${inactiveClass}">
-                                        <h3>${map.name} ${inactiveSymbol}</h3>
-                                        <img src="${map.img}" alt="Image not found" />
-                                        <p id="${id}-counter" class="count">
-                                            Played ${map.played} of ${total} times<br />
-                                            ${
-                                                total > 0
-                                                    ? Math.round((map.played / total) * 100)
-                                                    : 0
-                                            }%
-                                        </p>
-                                        <div class="buttons">
-                                            <button onclick="update('${id}', -1)">−</button>
-                                            <button onclick="${effect}update('${id}', 1)">+</button>
-                                        </div>
-                                    </div>
-                                `
-                                );
+                            if (!selected_season && res.seasons.length > 0) {
+                                selected_season = res.seasons[0].value;
+                                dropdown.value = selected_season;
+                            } else if (selected_season) {
+                                dropdown.value = selected_season;
                             }
-                        } else {
-                            alert(res.message || 'Failed to load maps.');
                         }
-                    });
+                        if (res.period){
+                            const label = document.querySelector('#period_label');
+                            label.innerHTML = `From ${res.period.from} until ${res.period.until ? res.period.until : "now"}`;
+                        }
+
+                        const { maps, total } = res;
+
+                        const sorted = Object.entries(maps).sort(
+                            ([, a], [, b]) => b.active - a.active || b.played - a.played
+                        );
+
+                        for (const [id, map] of sorted) {
+                            const inactiveClass = map.active ? '' : ' inactive';
+                            const inactiveSymbol = map.active
+                                ? ''
+                                : '<span class="inactive-symbol" data-tooltip="Out of Rotation">🚫️</span>';
+                            const effect = map.based
+                                ? "launchConfetti(this, 'good');"
+                                : "launchConfetti(this, 'bad');";
+
+                            container.insertAdjacentHTML(
+                                'beforeend',
+                                `
+                                <div class="item${inactiveClass}">
+                                    <h3>${map.name} ${inactiveSymbol}</h3>
+                                    <img src="${map.img}" alt="Image not found" />
+                                    <p id="${id}-counter" class="count">
+                                        Played ${map.played} of ${total} times<br />
+                                        ${total > 0 ? Math.round((map.played / total) * 100) : 0}%
+                                    </p>
+                                    <div class="buttons">
+                                        <button onclick="update('${id}', -1)">−</button>
+                                        <button onclick="${effect}update('${id}', 1)">+</button>
+                                    </div>
+                                </div>
+                                `
+                            );
+                        }
+                    } else {
+                        alert(res.message || 'Failed to load maps.');
+                    }
+                });
+            }
+
+            
+            function handle_season_change(value){
+                selected_season = value;
+                get_maps();
             }
 
             get_maps();
@@ -434,7 +523,7 @@
 
                 const colors = {
                     good: ['#2ecc71', '#f1c40f', '#3498db', '#e67e22'],
-                    bad: ['#3a3a3a', '#4a4a4a', '#2c2c2c', '#555555', '#1e1e1e'],
+                    bad: ['#3a003a', '#4a004a', '#2c002c', '#550055', '#1e001e'],
                 };
 
                 const count = type === 'bad' ? 20 : 40;
