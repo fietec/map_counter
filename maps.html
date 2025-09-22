@@ -355,6 +355,22 @@
             body.dark-mode .period_label {
                 color: #eee;
             }
+
+			.name-container {
+				position: relative;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.name-container-center {
+				margin: 0;
+			}
+
+			.name-container-right {
+				position: absolute;
+				right: 0;
+			}
             
         </style>
     </head>
@@ -475,20 +491,24 @@
                             ([, a], [, b]) => b.active - a.active || b.played - a.played
                         );
 
-                        for (const [id, map] of sorted) {
+						sorted.forEach(([id, map], index) => {
                             const inactiveClass = map.active ? '' : ' inactive';
                             const inactiveSymbol = map.active
                                 ? ''
                                 : '<span class="inactive-symbol" data-tooltip="Out of Rotation">🚫️</span>';
                             const effect = map.based
                                 ? "launchConfetti(this, 'good');"
-                                : "launchConfetti(this, 'bad');";
+                                  : "launchConfetti(this, 'bad');";
+							const medal = index == 0 ? '🥇' : index == 1 ? '🥈' : index == 2 ? '🥉' : '';
 
                             container.insertAdjacentHTML(
                                 'beforeend',
                                 `
                                 <div class="item${inactiveClass}">
-                                    <h3>${map.name} ${inactiveSymbol}</h3>
+                                    <div class="name-container">
+                                        <h3 class="name-container-center" >${map.name} ${inactiveSymbol}</h3>
+                                        <span class="name-container-right">${medal}</span>
+                                    </div>
                                     <img src="${map.img}" alt="Image not found" />
                                     <p id="${id}-counter" class="count">
                                         Played ${map.played} of ${total} times<br />
@@ -501,7 +521,7 @@
                                 </div>
                                 `
                             );
-                        }
+                        });
                     } else {
                         alert(res.message || 'Failed to load maps.');
                     }
