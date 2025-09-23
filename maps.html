@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" />
+        <meta charset="UTF-8"/>
         <title>Map Counter</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link
@@ -369,8 +369,32 @@
 
 			.name-container-right {
 				position: absolute;
-				right: 0;
+			    right: 0;
+			    cursor: help;
 			}
+
+			.name-container-right::after {
+                content: attr(data-tooltip);
+			    position: absolute;
+			    bottom: 125%;
+			    left: 50%;
+			    transform: translateX(-50%);
+			    background-color: #333;
+			    color: #fff;
+			    padding: 5px 8px;
+			    border-radius: 4px;
+			    white-space: nowrap;
+			    font-size: 0.75rem;
+			    opacity: 0;
+			    pointer-events: none;
+			    transition: opacity 0.2s ease-in-out;
+			    z-index: 10;
+            }
+
+            .name-container-right:hover::after {
+                opacity: 1;
+            }
+
             
         </style>
     </head>
@@ -500,6 +524,7 @@
                                 ? "launchConfetti(this, 'good');"
                                   : "launchConfetti(this, 'bad');";
 							const medal = index == 0 ? '🥇' : index == 1 ? '🥈' : index == 2 ? '🥉' : '';
+							const medal_tooltip = index == 0 ? "1st place" : index == 1 ? "2nd place" : index == 2 ? "3rd place" : "";
 
                             container.insertAdjacentHTML(
                                 'beforeend',
@@ -507,7 +532,7 @@
                                 <div class="item${inactiveClass}">
                                     <div class="name-container">
                                         <h3 class="name-container-center" >${map.name} ${inactiveSymbol}</h3>
-                                        <span class="name-container-right">${medal}</span>
+                                        <span class="name-container-right" data-tooltip="${medal_tooltip}">${medal}</span>
                                     </div>
                                     <img src="${map.img}" alt="Image not found" />
                                     <p id="${id}-counter" class="count">
